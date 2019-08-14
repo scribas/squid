@@ -256,7 +256,7 @@ def view(query_array, query_len, csv_filename,delimiter_char):
                 file_line=csv_file.readline()
                 rows=0
                 while file_line and rows<=end_line:
-                    if rows>0 and rows%100000==0:
+                    if rows>0 and rows%1000000==0:
                         print('      >>> ' + str(rows))
                     if rows==0 or rows>=start_line:
                         fields = file_line.strip('\n').split(delimiter_char)
@@ -304,7 +304,7 @@ def rows(csv_filename):
         print('  Counting rows... (This can take some time)')
         while file_line:
             file_line=csv_file.readline()
-            if rows%100000==0:
+            if rows%1000000==0:
                 print('      >>> ' + str(rows))
             rows+=1
         print('')
