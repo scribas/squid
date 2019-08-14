@@ -25,64 +25,61 @@ def welcome():
 def help(subject):
     if subject=='':
         print('')
-        print('  NOTE: Type any command name without parameters to see its help article.')
-        print('')
         print('  COMMANDS:')
         print('  =========')
-        print('    list       (l)   - List content of present working directory.')
-        print('    cd         (cd)  - Change the present working directory.')
-        print('    open       (o)   - Point to a new text file.')
-        print('    columns    (c)   - View the column headings within the file, currently pointed to.')
-        print('    rows       (r)   - Count the number of rows within the file, currently pointed to.')
-        print('    view       (v)   - View the a portion of the content of a file.')
-        print('    delimiter  (d)   - Change the csv file delimiter.')
-        print('    exit/quit  (x,q) - Quit the program.')
+        print('    list       (l,ls)  - List content of present working directory.')
+        print('    cd         (cd)    - Change the present working directory.')
+        print('    open       (o)     - Point to a new text file.')
+        print('    columns    (c)     - View the column headings within the file.')
+        print('    rows       (r)     - Count the number of rows within the file.')
+        print('    view       (v)     - View the a portion of the content of a file.')
+        print('    delimiter  (d)     - Change the csv file delimiter.')
+        print('    exit/quit  (x,q)   - Quit the program.')
         print('')
     if subject=='o':
         print('  Open:')
         print('  =====')
         print('')
         print('  Description:')
-        print('  The open command points to the file that Squid should work on.')
-        print('  A path should be defined with unix-like front-slashes.')
-        print('  If no path is defined, the file is assumed to be in the pwd.')
+        print('    The open command points to the file that Squid should work on.')
+        print('    A path should be defined with unix-like front-slashes.')
+        print('    If no path is defined, the file is assumed to be in the present working directory.')
         print('')
-        print('  Syntax 1: open path/csv_filename')
-        print('  Syntax 2: o path/csv_filename')
+        print('    Syntax: open path/csv_filename')
         print('')
     if subject=='c':
         print('  Columns:')
         print('  ========')
         print('')
         print('  Description:')
-        print('  Lists all columns.')
+        print('    Lists all columns.')
         print('')
     if subject=='v':
         print('  View:')
         print('  =====')
         print('')
         print('  Description:')
-        print('  View displays the requested columns of the rows specified.')
-        print('  By default, view lists the first 10 rows of the csv file loaded.')
-        print('  If start_row is specified, 10 rows from that point onwards will be listed.')
-        print('  By specifying end_row, less or more than 10 rows can be listed.')
-        print('  If start_col is specified, 10 cols from that point onwards will be listed.')
-        print('  By specifying end_col, less or more than 10 cols can be listed.')
+        print('    View displays the requested columns of the rows specified.')
+        print('    By default, view lists the first 10 rows of the csv file loaded.')
+        print('    If start_row is specified, 10 rows from that point onwards will be listed.')
+        print('    By specifying end_row, less or more than 10 rows can be listed.')
+        print('    If start_col is specified, 10 cols from that point onwards will be listed.')
+        print('    By specifying end_col, less or more than 10 cols can be listed.')
         print('')
-        print('  Syntax: start_row end_row start_col end_col')
+        print('    Syntax: v start_row end_row start_col end_col')
         print('')
     if subject=='d':
         print('  Delimiter:')
         print('  ==========')
         print('')
         print('  Description:')
-        print('  By default, the delimiter in a csv file is assumed to be a comma.')
-        print('  By specifying character, the delimiter can be changed to one or more other symbols.')
+        print('    By default, the delimiter in a csv file is assumed to be a comma.')
+        print('    By specifying character, the delimiter can be changed to one or more other symbols.')
         print('')
 
 def loaded_file(csv_filename):
     if csv_filename=='':
-        print('  Currently not pointing to any text file.')
+        print('  Currently not pointing to any text file. Use `open` to point to a text file.')
     else:
         print('  Currently pointing to file:')
         print('  ' + csv_filename)
@@ -113,10 +110,9 @@ def list_directory():
         file_list= [ f for f in os.listdir(os.getcwd()) if not os.path.isfile(os.path.join(os.getcwd(),f)) ]
         for i in file_list:
             print('   D: ' + i)
-        print('')
         file_list= [ f for f in os.listdir(os.getcwd()) if os.path.isfile(os.path.join(os.getcwd(),f)) ]
         for i in file_list:
-            print('      ' + i)
+            print('   F: ' + i)
         print('')
     if query_len>1:
         print('  SYNTAX ERROR - : No parameters expected.')
@@ -237,49 +233,50 @@ def view(query_array, query_len, csv_filename,delimiter_char):
     end_col=9
     if query_len==1:
         help('v')
-    if not os.path.exists(csv_filename):
-        print('  ERROR -  Cannot find file...?')
-        print('')
-    else:
-        print('  Fetching rows... (This can take some time)')
-        print('')
+    if csv_filename!='':
+        if not os.path.exists(csv_filename):
+            print('  ERROR -  Cannot find file...?')
+            print('')
+        else:
+            print('  Fetching rows... (This can take some time)')
+            print('')
 
-        if len(query_array)>1:
-            start_line=int(query_array[1])
-            end_line=start_line+9
-        if len(query_array)>2:
-            end_line=int(query_array[2])
-        if len(query_array)>3:
-            start_col=int(query_array[3])
-            end_col=start_col+9
-        if len(query_array)>4:
-            end_col=int(query_array[4])
-        if len(query_array)<6:
-            csv_file=open(csv_filename, 'r')
-            file_line=csv_file.readline()
-            rows=0
-            while file_line and rows<=end_line:
-                if rows>0 and rows%100000==0:
-                    print('      >>> ' + str(rows))
-                if rows==0 or rows>=start_line:
-                    fields = file_line.strip('\n').split(delimiter_char)
-                    col_num=0
-                    out_line = ''
-                    for i in fields:
-                        if col_num>=start_col:
-                            out_line += '[' + str(col_num) + ']' + i + ' '
-                        col_num+=1
-                        if col_num>end_col:
-                            break;
-                    print('    ' + str(rows) + ':', out_line)
-                if rows==0:
-                    print('      =================================================================================')
-
+            if len(query_array)>1:
+                start_line=int(query_array[1])
+                end_line=start_line+9
+            if len(query_array)>2:
+                end_line=int(query_array[2])
+            if len(query_array)>3:
+                start_col=int(query_array[3])
+                end_col=start_col+9
+            if len(query_array)>4:
+                end_col=int(query_array[4])
+            if len(query_array)<6:
+                csv_file=open(csv_filename, 'r')
                 file_line=csv_file.readline()
-                rows+=1
-            csv_file.close()
-        print('')
-    return
+                rows=0
+                while file_line and rows<=end_line:
+                    if rows>0 and rows%100000==0:
+                        print('      >>> ' + str(rows))
+                    if rows==0 or rows>=start_line:
+                        fields = file_line.strip('\n').split(delimiter_char)
+                        col_num=0
+                        out_line = ''
+                        for i in fields:
+                            if col_num>=start_col:
+                                out_line += '[' + str(col_num) + ']' + i + ' '
+                            col_num+=1
+                            if col_num>end_col:
+                                break;
+                        print('    ' + str(rows) + ':', out_line)
+                    if rows==0:
+                        print('      =================================================================================')
+
+                    file_line=csv_file.readline()
+                    rows+=1
+                csv_file.close()
+            print('')
+        return
 
 def delimiter(delimiter_char):
     if query_len==1:
@@ -347,6 +344,7 @@ while query!='quit' and query!='q' and query!='x':
     elif query=='columns' or query=='c':
         columns(query_len)
     elif query=='view' or query=='v':
+        loaded_file(csv_filename)
         view(query_array, query_len, csv_filename,delimiter_char)
     elif query=='delimiter' or query=='d':
         delimiter_char=delimiter(delimiter_char)
