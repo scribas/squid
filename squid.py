@@ -95,8 +95,11 @@ def loaded_file(csv_filename):
 # MODEL LAYER:
 ###############
 
-def cursor(pwd):
-    query_line=input("SQUID: " + pwd + "> ")
+def cursor(pwd,csv_filename):
+    if csv_filename=='':
+        query_line=input("SQUID: " + pwd + "> ")
+    else:
+        query_line=input("SQUID: " + pwd + "\\<" + csv_filename + "> ")
     query_array=query_line.split(' ')
     query=str(query_array[0]).lower()
     query_len=0
@@ -120,7 +123,7 @@ def list_directory():
         print('')
     return
 
-def cd(query_line):
+def cd(query_line,csv_filename):
     path=os.getcwd()
     if len(query_line.split('cd '))==1:
         directories={}
@@ -146,13 +149,14 @@ def cd(query_line):
 
     try:
         os.chdir(path)
+        csv_filename=''
     except:
         print('  No such directory')
         print('')
         pass
 
     pwd=os.getcwd()
-    return pwd
+    return pwd, csv_filename
 
 def open_file(query_array, query_len, csv_filename):
     if query_len==1:
@@ -177,7 +181,7 @@ def open_file(query_array, query_len, csv_filename):
                 number=int(input('  Pick the file number: '))
                 if number>0 and number<x:
                     csv_filename=files[number]
-                    print('  Loaded: ' + csv_filename)
+                    print('  Pointing to: ' + csv_filename)
                     print('')
             except:
                 print('  Wrong selection')
@@ -242,10 +246,12 @@ def view(query_array, query_len, csv_filename,delimiter_char):
 
         if len(query_array)>1:
             start_line=int(query_array[1])
+            end_line=start_line+9
         if len(query_array)>2:
             end_line=int(query_array[2])
         if len(query_array)>3:
             start_col=int(query_array[3])
+            end_col=start_col+9
         if len(query_array)>4:
             end_col=int(query_array[4])
         if len(query_array)<6:
@@ -253,14 +259,15 @@ def view(query_array, query_len, csv_filename,delimiter_char):
             file_line=csv_file.readline()
             rows=0
             while file_line and rows<=end_line:
-                if rows%100000==0:
+                if rows>0 and rows%100000==0:
                     print('      >>> ' + str(rows))
                 if rows==0 or rows>=start_line:
                     fields = file_line.strip('\n').split(delimiter_char)
-                    col_num=start_col
+                    col_num=0
                     out_line = ''
                     for i in fields:
-                        out_line += '[' + str(col_num) + ']' + i + ' '
+                        if col_num>=start_col:
+                            out_line += '[' + str(col_num) + ']' + i + ' '
                         col_num+=1
                         if col_num>end_col:
                             break;
@@ -300,9 +307,9 @@ def rows(csv_filename):
         print('  Counting rows... (This can take some time)')
         while file_line:
             file_line=csv_file.readline()
-            rows+=1
             if rows%100000==0:
                 print('      >>> ' + str(rows))
+            rows+=1
         print('')
         print('  Total rows: ' + str(rows))
         print('')
@@ -325,7 +332,7 @@ pwd= os.getcwd()
 welcome()
 
 while query!='quit' and query!='q' and query!='x':
-    query_line, query_array, query, query_len=cursor(pwd)
+    query_line, query_array, query, query_len=cursor(pwd,csv_filename)
     if query=='':
         help('')
         loaded_file(csv_filename)
@@ -333,23 +340,22 @@ while query!='quit' and query!='q' and query!='x':
         list_directory()
         loaded_file(csv_filename)
     elif query=='cd':
-        pwd=cd(query_line)
+        pwd,csv_filename=cd(query_line,csv_filename)
+        loaded_file(csv_filename)
     elif query=='open' or query=='o':
         csv_filename=open_file(query_array, query_len, csv_filename)
     elif query=='columns' or query=='c':
-        loaded_file(csv_filename)
         columns(query_len)
     elif query=='view' or query=='v':
-        loaded_file(csv_filename)
         view(query_array, query_len, csv_filename,delimiter_char)
     elif query=='delimiter' or query=='d':
         delimiter_char=delimiter(delimiter_char)
     elif query=='rows' or query=='r':
-        loaded_file(csv_filename)
         rows(csv_filename)
     elif query=='quit' or query=='q' or query=='x':
         print('  Thank you for this session!')
         print('  Good bye...')
+        print('')
+        print('')
     else:
         print('Unknown command...')
-#quit()
