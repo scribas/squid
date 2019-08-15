@@ -30,9 +30,11 @@ def help(subject):
         print('    list       (l,ls)  - List content of present working directory.')
         print('    cd         (cd)    - Change the present working directory.')
         print('    open       (o)     - Point to a new text file.')
+        print('    search     (?)     - Search for column content.')
         print('    columns    (c)     - View the column headings within the file.')
         print('    rows       (r)     - Count the number of rows within the file.')
         print('    view       (v)     - View the a portion of the content of a file.')
+        print('    stats      (s)     - Basic stats on a specific column.')
         print('    delimiter  (d)     - Change the csv file delimiter.')
         print('    exit/quit  (x,q)   - Quit the program.')
         print('')
@@ -45,7 +47,17 @@ def help(subject):
         print('    A path should be defined with unix-like front-slashes.')
         print('    If no path is defined, the file is assumed to be in the present working directory.')
         print('')
-        print('    Syntax: open path/csv_filename')
+        print('    Syntax 1: o')
+        print('    Syntax 2: o path/csv_filename')
+        print('')
+    if subject=='?':
+        print('  Search:')
+        print('  =======')
+        print('')
+        print('  Description:')
+        print('    Searches for the first 20 matches of a field value.')
+        print('')
+        print('  Syntax: ? search_term')
         print('')
     if subject=='c':
         print('  Columns:')
@@ -62,11 +74,21 @@ def help(subject):
         print('    View displays the requested columns of the rows specified.')
         print('    By default, view lists the first 10 rows of the csv file loaded.')
         print('    If start_row is specified, 10 rows from that point onwards will be listed.')
-        print('    By specifying end_row, less or more than 10 rows can be listed.')
         print('    If start_col is specified, 10 cols from that point onwards will be listed.')
+        print('    By specifying end_row, less or more than 10 rows can be listed.')
         print('    By specifying end_col, less or more than 10 cols can be listed.')
         print('')
-        print('    Syntax: v start_row end_row start_col end_col')
+        print('    Syntax 1: v')
+        print('    Syntax 2: v start_row start_col end_row end_col')
+        print('')
+    if subject=='s':
+        print('  Stats:')
+        print('  ======')
+        print('')
+        print('  Description:')
+        print('    Provides Min, Max, Total, Count, Mean stats on provided column.')
+        print('')
+        print('  Syntax: s col_num')
         print('')
     if subject=='d':
         print('  Delimiter:')
@@ -76,7 +98,8 @@ def help(subject):
         print('    By default, the delimiter in a csv file is assumed to be a comma.')
         print('    By specifying character, the delimiter can be changed to one or more other symbols.')
         print('')
-
+        print('  Syntax: d ')
+        print('')
 def loaded_file(csv_filename):
     if csv_filename=='':
         print('  Currently not pointing to any text file. Use `open` to point to a text file.')
@@ -196,6 +219,50 @@ def open_file(query_array, query_len, csv_filename):
         print('')
     return csv_filename
 
+def search(query_array, query_len, csv_filename,delimiter_char):
+    if query_len==1:
+        help('?')
+    elif csv_filename!='':
+        if not os.path.exists(csv_filename):
+            print('  ERROR -  Cannot find file...?')
+            print('')
+        else:
+            print('  Fetching rows... (This can take some time)')
+            print('')
+
+            if len(query_array)>1:
+                search_term=str(query_array[1])
+            if len(query_array)==2:
+                csv_file=open(csv_filename, 'r')
+                file_line=csv_file.readline()
+                rows=0
+                matches=0
+                while file_line:
+                    if rows>0 and rows%1000000==0:
+                        print('      >>> ' + str(rows) + ' rows processed...')
+                    fields = file_line.strip('\n').split(delimiter_char)
+                    col_num=0
+                    out_line = ''
+                    for i in fields:
+                        if i.upper()==search_term.upper() or rows==0:
+                            out_line += '[' + str(col_num) + ']' + i + ' '
+                            if i.upper()==search_term.upper():
+                                matches+=1
+                        col_num+=1
+                    if out_line!='':
+                        print('    ' + str(rows) + ':', out_line)
+                    if matches>=20:
+                        print('  Stopping after first 20 search results...')
+                        break;
+                    if rows==0:
+                        print('      =================================================================================')
+
+                    file_line=csv_file.readline()
+                    rows+=1
+                csv_file.close()
+            print('')
+        return
+
 def columns(query_len):
     if query_len==1:
         help('c')
@@ -226,6 +293,25 @@ def columns(query_len):
         print('')
     return
 
+def rows(csv_filename):
+    if not os.path.exists(csv_filename):
+        print('  ERROR - Cannot find file...?')
+        print('')
+    else:
+        csv_file=open(csv_filename, 'r')
+        rows=1;
+        file_line=csv_file.readline()
+        print('  Counting rows... (This can take some time)')
+        while file_line:
+            file_line=csv_file.readline()
+            if rows%1000000==0:
+                print('      >>> ' + str(rows) + ' rows processed...')
+            rows+=1
+        print('')
+        print('  Total rows: ' + str(rows))
+        print('')
+        csv_file.close()
+
 def view(query_array, query_len, csv_filename,delimiter_char):
     start_line=0
     end_line=9
@@ -245,10 +331,10 @@ def view(query_array, query_len, csv_filename,delimiter_char):
                 start_line=int(query_array[1])
                 end_line=start_line+9
             if len(query_array)>2:
-                end_line=int(query_array[2])
-            if len(query_array)>3:
-                start_col=int(query_array[3])
+                start_col=int(query_array[2])
                 end_col=start_col+9
+            if len(query_array)>3:
+                end_line=int(query_array[3])
             if len(query_array)>4:
                 end_col=int(query_array[4])
             if len(query_array)<6:
@@ -257,7 +343,7 @@ def view(query_array, query_len, csv_filename,delimiter_char):
                 rows=0
                 while file_line and rows<=end_line:
                     if rows>0 and rows%1000000==0:
-                        print('      >>> ' + str(rows))
+                        print('      >>> ' + str(rows) + ' rows processed...')
                     if rows==0 or rows>=start_line:
                         fields = file_line.strip('\n').split(delimiter_char)
                         col_num=0
@@ -278,6 +364,64 @@ def view(query_array, query_len, csv_filename,delimiter_char):
             print('')
         return
 
+def stats(query_array, query_len, csv_filename, delimiter_char):
+    col=0
+    if query_len==1:
+        help('s')
+    else:
+        if csv_filename!='':
+            if not os.path.exists(csv_filename):
+                print('  ERROR -  Cannot find file...?')
+                print('')
+            else:
+                print('  Fetching rows... (This can take some time)')
+                print('')
+
+                if len(query_array)==2:
+                    col=int(query_array[1])
+                    max_num=0
+                    min_num=1000000000000
+                    sum_total=0
+                    num=0
+                    csv_file=open(csv_filename, 'r')
+                    file_line=csv_file.readline()
+                    rows=0
+                    while file_line:
+                        if rows>0 and rows%1000000==0:
+                            print('      >>> ' + str(rows) + ' rows processed...')
+                        fields = file_line.strip('\n').split(delimiter_char)
+                        col_num=0
+                        for i in fields:
+                            if col_num==col:
+                                if rows==0:
+                                    print('    [' + str(col_num) + ']' + i)
+                                    print('      ======================')
+                                else:
+                                    if type(i)==str:
+                                        try:
+                                            i=float(i)
+                                        except:
+                                            i=0
+                                    if max_num<i:
+                                        max_num=i
+                                    if min_num>i:
+                                        min_num=i
+                                    sum_total+=i
+                                    num+=1
+                            col_num+=1
+
+                        file_line=csv_file.readline()
+                        rows+=1
+                    csv_file.close()
+                    print('')
+                    print('  Min: ' + str(min_num))
+                    print('  Max: ' + str(max_num))
+                    print('  Total: ' + str(sum_total))
+                    print('  Count: ' + str(num))
+                    print('  Mean: ' + str(sum_total / num))
+                print('')
+            return
+
 def delimiter(delimiter_char):
     if query_len==1:
         help('d')
@@ -293,24 +437,6 @@ def delimiter(delimiter_char):
         print('')
     return delimiter_char
 
-def rows(csv_filename):
-    if not os.path.exists(csv_filename):
-        print('  ERROR - Cannot find file...?')
-        print('')
-    else:
-        csv_file=open(csv_filename, 'r')
-        rows=1;
-        file_line=csv_file.readline()
-        print('  Counting rows... (This can take some time)')
-        while file_line:
-            file_line=csv_file.readline()
-            if rows%1000000==0:
-                print('      >>> ' + str(rows))
-            rows+=1
-        print('')
-        print('  Total rows: ' + str(rows))
-        print('')
-        csv_file.close()
 
 
 ##################################################################################################
@@ -341,11 +467,17 @@ while query!='quit' and query!='q' and query!='x':
         loaded_file(csv_filename)
     elif query=='open' or query=='o':
         csv_filename=open_file(query_array, query_len, csv_filename)
+    elif query=='search' or query=='?':
+        loaded_file(csv_filename)
+        search(query_array, query_len, csv_filename,delimiter_char)
     elif query=='columns' or query=='c':
         columns(query_len)
     elif query=='view' or query=='v':
         loaded_file(csv_filename)
         view(query_array, query_len, csv_filename,delimiter_char)
+    elif query=='stats' or query=='s':
+        loaded_file(csv_filename)
+        stats(query_array, query_len, csv_filename,delimiter_char)
     elif query=='delimiter' or query=='d':
         delimiter_char=delimiter(delimiter_char)
     elif query=='rows' or query=='r':
