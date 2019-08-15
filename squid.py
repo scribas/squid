@@ -35,6 +35,7 @@ def help(subject):
         print('    rows       (r)     - Count the number of rows within the file.')
         print('    view       (v)     - View the a portion of the content of a file.')
         print('    stats      (s)     - Basic stats on a specific column.')
+        print('    histo      (h)     - Histogram on a specific column.')
         print('    delimiter  (d)     - Change the csv file delimiter.')
         print('    exit/quit  (x,q)   - Quit the program.')
         print('')
@@ -89,6 +90,17 @@ def help(subject):
         print('    Provides Min, Max, Total, Count, Mean stats on provided column.')
         print('')
         print('  Syntax: s col_num')
+        print('')
+    if subject=='h':
+        print('  Histogram:')
+        print('  ==========')
+        print('')
+        print('  Description:')
+        print('    Draw up a histogram of the values of the specified column.')
+        print('    By default, max_value is set to 100, min_value to 0 and bins to 20.')
+        print('')
+        print('  Syntax 1: h col_num')
+        print('  Syntax 2: h col_num max_value min_value bins')
         print('')
     if subject=='d':
         print('  Delimiter:')
@@ -395,19 +407,30 @@ def stats(query_array, query_len, csv_filename, delimiter_char):
                             if col_num==col:
                                 if rows==0:
                                     print('    [' + str(col_num) + ']' + i)
-                                    print('      ======================')
+                                    print('    ======================')
                                 else:
                                     if type(i)==str:
                                         try:
                                             i=float(i)
+                                            if max_num<i:
+                                                max_num=i
+                                            if min_num>i:
+                                                min_num=i
+                                            sum_total+=i
+                                            num+=1
                                         except:
                                             i=0
-                                    if max_num<i:
-                                        max_num=i
-                                    if min_num>i:
-                                        min_num=i
-                                    sum_total+=i
-                                    num+=1
+                                    else:
+                                        try:
+                                            if max_num<i:
+                                                max_num=i
+                                            if min_num>i:
+                                                min_num=i
+                                            sum_total+=i
+                                            num+=1
+                                        except:
+                                            i=0
+
                             col_num+=1
 
                         file_line=csv_file.readline()
@@ -419,6 +442,100 @@ def stats(query_array, query_len, csv_filename, delimiter_char):
                     print('  Total: ' + str(sum_total))
                     print('  Count: ' + str(num))
                     print('  Mean: ' + str(sum_total / num))
+                print('')
+            return
+
+def histo(query_array, query_len, csv_filename, delimiter_char):
+    col=0
+    bins=20
+    max_num=100
+    min_num=0
+    histo=[]
+    max_bin_size=0
+    if query_len==1:
+        help('h')
+    else:
+        if csv_filename!='':
+            if not os.path.exists(csv_filename):
+                print('  ERROR -  Cannot find file...?')
+                print('')
+            else:
+                print('  Fetching rows... (This can take some time)')
+                print('')
+
+                if len(query_array)>1:
+                    col=int(query_array[1])
+                if len(query_array)>2:
+                    max_num=int(query_array[2])
+                if len(query_array)>3:
+                    min_num=int(query_array[3])
+                if len(query_array)>4:
+                    bins=int(query_array[4])
+                if len(query_array)<6:
+                    for i in range(0,bins+2):
+                        histo.insert(i,0)
+                    csv_file=open(csv_filename, 'r')
+                    file_line=csv_file.readline()
+                    rows=0
+                    while file_line:
+                        if rows>0 and rows%1000000==0:
+                            print('      >>> ' + str(rows) + ' rows processed...')
+                        fields = file_line.strip('\n').split(delimiter_char)
+                        col_num=0
+                        for i in fields:
+                            if col_num==col:
+                                if rows==0:
+                                    print('    [' + str(col_num) + ']' + i)
+                                    print('    ======================')
+                                else:
+                                    if type(i)==str:
+                                        try:
+                                            i=float(i)
+                                            if i<min_num:
+                                                histo[0]+=1
+                                            if i>max_num:
+                                                histo[bins+1]+=1
+                                            if i>=min_num and i<=max_num:
+                                                histo[int(bins * (i-min_num)/(max_num-min_num))+1]+=1
+                                                if max_bin_size<histo[int(bins * (i-min_num)/(max_num-min_num))+1]:
+                                                    max_bin_size=histo[int(bins * (i-min_num)/(max_num-min_num))+1]
+                                        except:
+                                            i=0
+                                    else:
+                                        try:
+                                            if i<min_num:
+                                                histo[0]+=1
+                                            if i>max_num:
+                                                histo[bins+1]+=1
+                                            if i>=min_num and i<=max_num:
+                                                histo[int(bins * (i-min_num)/(max_num-min_num))+1]+=1
+                                                if max_bin_size<histo[int(bins * (i-min_num)/(max_num-min_num))+1]:
+                                                    max_bin_size=histo[int(bins * (i-min_num)/(max_num-min_num))+1]
+                                        except:
+                                            i=0
+
+                            col_num+=1
+
+                        file_line=csv_file.readline()
+                        rows+=1
+                    csv_file.close()
+                    print('')
+                    bin_no=0
+                    for i in histo:
+                        if bin_no==0:
+                            print('    Pre: ' + ' ' + str(i))
+                        elif bin_no==bins+1:
+                            print('    Post: ' + str(i))
+                        else:
+                            out_text=''
+                            if max_bin_size>0:
+                                max_range=int(80*i/max_bin_size)
+                            else:
+                                max_range=0
+                            for j in range(0,max_range):
+                                out_text+='*'
+                            print('    Bin ' + str(bin_no) + ': ' + str(int((bin_no-1)/bins * (max_num-min_num))+min_num) + '-' + str(int(bin_no/bins * (max_num-min_num))+min_num-1) + ' ' + out_text + ' ' + str(i))
+                        bin_no+=1
                 print('')
             return
 
@@ -478,6 +595,9 @@ while query!='quit' and query!='q' and query!='x':
     elif query=='stats' or query=='s':
         loaded_file(csv_filename)
         stats(query_array, query_len, csv_filename,delimiter_char)
+    elif query=='histo' or query=='h':
+        loaded_file(csv_filename)
+        histo(query_array, query_len, csv_filename,delimiter_char)
     elif query=='delimiter' or query=='d':
         delimiter_char=delimiter(delimiter_char)
     elif query=='rows' or query=='r':
