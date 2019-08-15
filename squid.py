@@ -466,9 +466,9 @@ def histo(query_array, query_len, csv_filename, delimiter_char):
                 if len(query_array)>1:
                     col=int(query_array[1])
                 if len(query_array)>2:
-                    max_num=int(query_array[2])
+                    max_num=float(query_array[2])+0.1
                 if len(query_array)>3:
-                    min_num=int(query_array[3])
+                    min_num=float(query_array[3])
                 if len(query_array)>4:
                     bins=int(query_array[4])
                 if len(query_array)<6:
@@ -521,6 +521,7 @@ def histo(query_array, query_len, csv_filename, delimiter_char):
                     csv_file.close()
                     print('')
                     bin_no=0
+                    max_num-=0.1
                     for i in histo:
                         if bin_no==0:
                             print('    Pre: ' + ' ' + str(i))
@@ -534,7 +535,7 @@ def histo(query_array, query_len, csv_filename, delimiter_char):
                                 max_range=0
                             for j in range(0,max_range):
                                 out_text+='*'
-                            print('    Bin ' + str(bin_no) + ': ' + str(int((bin_no-1)/bins * (max_num-min_num))+min_num) + '-' + str(int(bin_no/bins * (max_num-min_num))+min_num-1) + ' ' + out_text + ' ' + str(i))
+                            print('    Bin ' + str(bin_no) + ': ' + str(int((bin_no-1)/bins * (max_num-min_num)+min_num)) + '-' + str(int((bin_no)/bins * (max_num-min_num)+min_num)) + ' ' + out_text + ' ' + str(i))
                         bin_no+=1
                 print('')
             return
