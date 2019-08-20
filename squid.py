@@ -34,6 +34,7 @@ def help(subject):
         print('    columns    (c)     - View the column headings within the file.')
         print('    rows       (r)     - Count the number of rows within the file.')
         print('    view       (v)     - View the a portion of the content of a file.')
+        print('    freq       (f)     - Category frequency on a specific column.')
         print('    stats      (s)     - Basic stats on a specific column.')
         print('    histo      (h)     - Histogram on a specific column.')
         print('    delimiter  (d)     - Change the csv file delimiter.')
@@ -81,6 +82,15 @@ def help(subject):
         print('')
         print('    Syntax 1: v')
         print('    Syntax 2: v start_row start_col end_row end_col')
+        print('')
+    if subject=='f':
+        print('  Frequency:')
+        print('  ======')
+        print('')
+        print('  Description:')
+        print('    Displays the top 20 frequency of occurence of the first 100 text categories found.')
+        print('')
+        print('  Syntax: f col_num')
         print('')
     if subject=='s':
         print('  Stats:')
@@ -376,6 +386,83 @@ def view(query_array, query_len, csv_filename,delimiter_char):
             print('')
         return
 
+def freq(query_array, query_len, csv_filename, delimiter_char):
+    col=0
+    bins=100
+    histo={}
+    max_bin_size=0
+    max_item_length=0
+    if query_len==1:
+        help('f')
+    else:
+        if csv_filename!='':
+            if not os.path.exists(csv_filename):
+                print('  ERROR -  Cannot find file...?')
+                print('')
+            else:
+                print('  Fetching rows... (This can take some time)')
+                print('')
+
+                if len(query_array)>1:
+                    col=int(query_array[1])
+                if len(query_array)<=2:
+                    csv_file=open(csv_filename, 'r')
+                    file_line=csv_file.readline()
+                    rows=0
+                    while file_line:
+                        if rows>0 and rows%1000000==0:
+                            print('      >>> ' + str(rows) + ' rows processed...')
+                        fields = file_line.strip('\n').split(delimiter_char)
+                        col_num=0
+                        for i in fields:
+                            if col_num==col:
+                                if rows==0:
+                                    print('    [' + str(col_num) + ']' + i)
+                                    print('    ======================')
+                                else:
+                                    if max_item_length<len(i):
+                                        max_item_length = len(i)
+                                    if len(histo)<bins and i!='':
+                                        if i not in histo:
+                                            histo[i]=1
+                                        else:
+                                            histo[i]+=1
+                                            if max_bin_size<histo[i]:
+                                                max_bin_size=histo[i]
+                                    else:
+                                        if 'post' not in histo:
+                                            histo['post']=1
+                                        else:
+                                            histo['post']+=1
+                            col_num+=1
+
+                        file_line=csv_file.readline()
+                        rows+=1
+                    csv_file.close()
+                    print('')
+                    listofTuples = sorted(histo.items() , reverse=True, key=lambda x: x[1])
+                    num=0
+                    count=0
+                    for i in listofTuples:
+                        if i[0] !='post':
+                            num+=1
+                            if num<=20:
+                                out_text=''
+                                if max_bin_size>0:
+                                    max_range=int(80*i[1]/max_bin_size)
+                                else:
+                                    max_range=0
+                                for j in range(0,max_range):
+                                    out_text+='*'
+                                print('    Bin ' + f'{str(num):2}' + ': ' + f'{i[0]:40}' + out_text + ' ' + str(i[1]))
+                            else:
+                                count+=int(i[1])
+                        else:
+                            count+=int(i[1])
+                    print('    Other: ' + str(count))
+                print('')
+            return
+
 def stats(query_array, query_len, csv_filename, delimiter_char):
     col=0
     if query_len==1:
@@ -437,11 +524,11 @@ def stats(query_array, query_len, csv_filename, delimiter_char):
                         rows+=1
                     csv_file.close()
                     print('')
-                    print('  Min: ' + str(min_num))
-                    print('  Max: ' + str(max_num))
+                    print('  Min:   ' + str(min_num))
+                    print('  Max:   ' + str(max_num))
                     print('  Total: ' + str(sum_total))
                     print('  Count: ' + str(num))
-                    print('  Mean: ' + str(sum_total / num))
+                    print('  Mean:  ' + str(sum_total / num))
                 print('')
             return
 
@@ -535,7 +622,8 @@ def histo(query_array, query_len, csv_filename, delimiter_char):
                                 max_range=0
                             for j in range(0,max_range):
                                 out_text+='*'
-                            print('    Bin ' + str(bin_no) + ': ' + str(int((bin_no-1)/bins * (max_num-min_num)+min_num)) + '-' + str(int((bin_no)/bins * (max_num-min_num)+min_num)) + ' ' + out_text + ' ' + str(i))
+                            range_text = str(int((bin_no-1)/bins * (max_num-min_num)+min_num)) + '-' + str(int((bin_no)/bins * (max_num-min_num)+min_num))
+                            print('    Bin ' + f'{str(bin_no):2}' + ': ' + f'{range_text:20}' + ' ' + out_text + ' ' + str(i))
                         bin_no+=1
                 print('')
             return
@@ -593,6 +681,9 @@ while query!='quit' and query!='q' and query!='x':
     elif query=='view' or query=='v':
         loaded_file(csv_filename)
         view(query_array, query_len, csv_filename,delimiter_char)
+    elif query=='freq' or query=='f':
+        loaded_file(csv_filename)
+        freq(query_array, query_len, csv_filename,delimiter_char)
     elif query=='stats' or query=='s':
         loaded_file(csv_filename)
         stats(query_array, query_len, csv_filename,delimiter_char)
