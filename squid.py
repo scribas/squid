@@ -142,7 +142,8 @@ def cursor(pwd,csv_filename):
         query_line=input("SQUID: " + pwd + "> ")
     else:
         query_line=input("SQUID: " + pwd + "\\<" + csv_filename + "> ")
-    query_array=query_line.split(' ')
+    query_line = query_line.replace('  ',' ')
+    query_array=query_line.strip(' ').split(' ')
     query=str(query_array[0]).lower()
     query_len=0
     query_len=len(query_array)
