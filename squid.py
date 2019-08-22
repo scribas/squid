@@ -34,9 +34,9 @@ def help(subject):
         print('    columns    (c)     - View the column headings within the file.')
         print('    rows       (r)     - Count the number of rows within the file.')
         print('    view       (v)     - View the a portion of the content of a file.')
-        print('    freq       (f)     - Category frequency on a specific column.')
-        print('    stats      (s)     - Basic stats on a specific column.')
-        print('    histo      (h)     - Histogram on a specific column.')
+        print('    freq       (f)     - Frequency of categories on a category column.')
+        print('    stats      (s)     - Basic stats on a numeric column.')
+        print('    histo      (h)     - Histogram on a numeric column.')
         print('    delimiter  (d)     - Change the csv file delimiter.')
         print('    exit/quit  (x,q)   - Quit the program.')
         print('')
@@ -81,14 +81,17 @@ def help(subject):
         print('    By specifying end_col, less or more than 10 cols can be listed.')
         print('')
         print('    Syntax 1: v')
-        print('    Syntax 2: v start_row start_col end_row end_col')
+        print('    Syntax 2: v start_row')
+        print('    Syntax 3: v start_row start_col')
+        print('    Syntax 4: v start_row start_col end_row')
+        print('    Syntax 5: v start_row start_col end_row end_col')
         print('')
     if subject=='f':
         print('  Frequency:')
         print('  ======')
         print('')
         print('  Description:')
-        print('    Displays the top 20 frequency of occurence of the first 100 text categories found.')
+        print('    Displays the top 20 frequency of occurence of the first 1000 text categories found in a categorical column.')
         print('')
         print('  Syntax: f col_num')
         print('')
@@ -97,7 +100,7 @@ def help(subject):
         print('  ======')
         print('')
         print('  Description:')
-        print('    Provides Min, Max, Total, Count, Mean stats on provided column.')
+        print('    Provides Min, Max, Total, Count, Mean stats on a numeric column.')
         print('')
         print('  Syntax: s col_num')
         print('')
@@ -106,11 +109,13 @@ def help(subject):
         print('  ==========')
         print('')
         print('  Description:')
-        print('    Draw up a histogram of the values of the specified column.')
+        print('    Draw up a histogram of the values of a numeric column.')
         print('    By default, max_value is set to 100, min_value to 0 and bins to 20.')
         print('')
         print('  Syntax 1: h col_num')
-        print('  Syntax 2: h col_num max_value min_value bins')
+        print('  Syntax 2: h col_num max_value')
+        print('  Syntax 3: h col_num max_value min_value')
+        print('  Syntax 4: h col_num max_value min_value bins')
         print('')
     if subject=='d':
         print('  Delimiter:')
@@ -389,7 +394,7 @@ def view(query_array, query_len, csv_filename,delimiter_char):
 
 def freq(query_array, query_len, csv_filename, delimiter_char):
     col=0
-    bins=100
+    bins=1000
     histo={}
     max_bin_size=0
     max_item_length=0
