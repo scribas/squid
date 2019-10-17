@@ -261,7 +261,7 @@ def search(query_array, query_len, csv_filename,delimiter_char):
             if len(query_array)>1:
                 search_term=str(query_array[1])
             if len(query_array)==2:
-                csv_file=open(csv_filename, 'r')
+                csv_file=open(csv_filename, 'r', encoding='utf8')
                 file_line=csv_file.readline()
                 rows=0
                 matches=0
@@ -302,7 +302,7 @@ def columns(query_len):
                 print('  ERROR - Cannot find file...?')
                 print('')
             else:
-                csv_file=open(csv_filename, 'r')
+                csv_file=open(csv_filename, 'r', encoding='utf8')
                 file_line=csv_file.readline()
                 line_array=file_line.split(delimiter_char)
                 col_no=0
@@ -326,7 +326,7 @@ def rows(csv_filename):
         print('  ERROR - Cannot find file...?')
         print('')
     else:
-        csv_file=open(csv_filename, 'r')
+        csv_file=open(csv_filename, 'r', encoding='utf8')
         rows=1;
         file_line=csv_file.readline()
         print('  Counting rows... (This can take some time)')
@@ -366,7 +366,7 @@ def view(query_array, query_len, csv_filename,delimiter_char):
             if len(query_array)>4:
                 end_col=int(query_array[4])
             if len(query_array)<6:
-                csv_file=open(csv_filename, 'r')
+                csv_file=open(csv_filename, 'r', encoding='utf8')
                 file_line=csv_file.readline()
                 rows=0
                 while file_line and rows<=end_line:
@@ -412,7 +412,7 @@ def freq(query_array, query_len, csv_filename, delimiter_char):
                 if len(query_array)>1:
                     col=int(query_array[1])
                 if len(query_array)<=2:
-                    csv_file=open(csv_filename, 'r')
+                    csv_file=open(csv_filename, 'r', encoding='utf8')
                     file_line=csv_file.readline()
                     rows=0
                     while file_line:
@@ -488,7 +488,7 @@ def stats(query_array, query_len, csv_filename, delimiter_char):
                     min_num=1000000000000
                     sum_total=0
                     num=0
-                    csv_file=open(csv_filename, 'r')
+                    csv_file=open(csv_filename, 'r', encoding='utf8')
                     file_line=csv_file.readline()
                     rows=0
                     while file_line:
@@ -567,7 +567,7 @@ def histo(query_array, query_len, csv_filename, delimiter_char):
                 if len(query_array)<6:
                     for i in range(0,bins+2):
                         histo.insert(i,0)
-                    csv_file=open(csv_filename, 'r')
+                    csv_file=open(csv_filename, 'r', encoding='utf8')
                     file_line=csv_file.readline()
                     rows=0
                     while file_line:
